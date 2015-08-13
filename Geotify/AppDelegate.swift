@@ -13,9 +13,15 @@ import CoreLocation
 class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate {
   
   var window: UIWindow?
+  
+  let locationManager = CLLocationManager() // Add this statement
 
   func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+    locationManager.delegate = self                // Add this line
+    locationManager.requestAlwaysAuthorization()   // And this one
     
+    application.registerUserNotificationSettings(UIUserNotificationSettings(forTypes: .Sound | .Alert | .Badge, categories: nil))
+    UIApplication.sharedApplication().cancelAllLocalNotifications()
     return true
   }
   
@@ -48,6 +54,50 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
 
   func applicationWillTerminate(application: UIApplication) {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+  }
+  
+  // MARK : geo fensing event handling
+  
+  func handleRegionEvent(region: CLRegion!) {
+    println("Geofence triggered!")
+    if UIApplication.sharedApplication().applicationState == .Active {
+      if let message = notefromRegionIdentifier(region.identifier) {
+        if let viewController = window?.rootViewController {
+          showSimpleAlertWithTitle(nil, message: message, viewController: viewController)
+        }
+      }
+    }
+    else {
+      var notification = UILocalNotification()
+      notification.alertBody = notefromRegionIdentifier(region.identifier)
+      notification.soundName = "Default"
+      UIApplication.sharedApplication().presentLocalNotificationNow(notification)
+    }
+  }
+  
+  func locationManager(manager: CLLocationManager!, didEnterRegion region: CLRegion!) {
+    if region is CLCircularRegion {
+      handleRegionEvent(region)
+    }
+  }
+  
+  func locationManager(manager: CLLocationManager!, didExitRegion region: CLRegion!) {
+    if region is CLCircularRegion {
+      handleRegionEvent(region)
+    }
+  }
+  
+  func notefromRegionIdentifier(identifier: String) -> String? {
+    if let savedItems = NSUserDefaults.standardUserDefaults().arrayForKey(kSavedItemsKey) {
+      for savedItem in savedItems {
+        if let geotification = NSKeyedUnarchiver.unarchiveObjectWithData(savedItem as! NSData) as? Geotification {
+          if geotification.identifier == identifier {
+            return geotification.note
+          }
+        }
+      }
+    }
+    return nil
   }
 }
 

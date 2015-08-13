@@ -50,7 +50,7 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Geotifications (0)" id="dS8-nZ-3oV">
-                        <barButtonItem key="leftBarButtonItem" image="CurrentLocation" id="FIG-L9-xbZ">
+                        <barButtonItem key="leftBarButtonItem" image="CurrentLocation" id="FIG-L9-xbZ" userLabel="My Location">
                             <connections>
                                 <action selector="zoomToCurrentLocation:" destination="LYI-dq-R4y" id="pF9-UT-cfj"/>
                             </connections>
